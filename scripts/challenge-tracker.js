@@ -1,9 +1,9 @@
-import { ChallengeTracker, ChallengeTrackerSettings } from './main.js'
-import { Utils } from './utils.js'
-import { Settings } from './settings.js'
-import { ChallengeTrackerCompatibility } from './compatibility.js'
-import { ChallengeTrackerForm, ChallengeTrackerEditForm } from './forms.js'
-import { ChallengeTrackerFlag } from './flags.js'
+import { ChallengeTrackerCompatibility } from "./compatibility.js";
+import { ChallengeTrackerFlag } from "./flags.js";
+import { ChallengeTrackerEditForm, ChallengeTrackerForm } from "./forms.js";
+import { ChallengeTracker, ChallengeTrackerSettings } from "./main.js";
+import { Settings } from "./settings.js";
+import { Utils } from "./utils.js";
 
 Hooks.once('init', () => {
   Settings.init()
@@ -14,29 +14,29 @@ Hooks.once('init', () => {
   })
 })
 
-Hooks.once('colorPickerReady', () => {
-  Settings.initColorSettings()
-})
+Hooks.once("colorPickerReady", () => {
+  Settings.initColorSettings();
+});
 
-Hooks.once('socketlib.ready', () => {
-  window.ChallengeTrackerSocket = socketlib.registerModule('challenge-tracker')
-  ChallengeTrackerSocket.register('openHandler', ChallengeTracker.openHandler)
-  ChallengeTrackerSocket.register('drawHandler', ChallengeTracker.drawHandler)
-  ChallengeTrackerSocket.register('closeHandler', ChallengeTracker.closeHandler)
-})
+Hooks.once("socketlib.ready", () => {
+  window.ChallengeTrackerSocket = socketlib.registerModule("challenge-tracker");
+  ChallengeTrackerSocket.register("openHandler", ChallengeTracker.openHandler);
+  ChallengeTrackerSocket.register("drawHandler", ChallengeTracker.drawHandler);
+  ChallengeTrackerSocket.register("closeHandler", ChallengeTracker.closeHandler);
+});
 
-Hooks.once('ready', async () => {
+Hooks.once("ready", async () => {
   if (game.user.isGM) {
-    if (typeof ColorPicker === 'undefined') {
-      ui.notifications.notify("Challenge Tracker: To use this module, install and enable the 'Color Picker' module.")
+    if (typeof ColorPicker === "undefined") {
+      ui.notifications.notify("Challenge Tracker: To use this module, install and enable the 'Color Picker' module.");
     }
   }
 
-  ChallengeTrackerFlag.setOwner()
-  ChallengeTrackerFlag.setListPosition()
+  ChallengeTrackerFlag.setOwner();
+  ChallengeTrackerFlag.setListPosition();
 
   // Initialise Challenge Tracker
-  game.challengeTracker = []
+  game.challengeTracker = [];
 
   window.ChallengeTracker = {
     open: ChallengeTracker.open,
@@ -58,22 +58,21 @@ Hooks.once('ready', async () => {
     hideAll: ChallengeTracker.hideAll,
     hideById: ChallengeTracker.hideById,
     hideByTitle: ChallengeTracker.hideByTitle,
-    openList: ChallengeTrackerForm.open
-  }
-})
+    openList: ChallengeTrackerForm.open,
+  };
+});
 
 /* Add buttons to the Player List */
-Hooks.on('renderPlayerList', (playerList, html) => {
-  const buttonLocation = Utils.getSetting('challenge-tracker', 'buttonLocation')
-  if (buttonLocation !== 'player-list' || !Utils.checkDisplayButton(game.user.role)) return
+Hooks.on("renderPlayerList", (playerList, html) => {
+  const buttonLocation = Utils.getSetting("challenge-tracker", "buttonLocation");
+  if (buttonLocation !== "player-list" || !Utils.checkDisplayButton(game.user.role)) return;
   (async () => {
     // Sleep to let system and modules load elements onto the Player List
-    await Utils.sleep(100)
+    await Utils.sleep(100);
 
-    const tooltip = game.i18n.localize('challengeTracker.labels.challengeTrackerButtonTitle')
-    const icon =
-    `<svg width="100%" height="100%" viewBox="-5 -5 110 110" xmlns="http://www.w3.org/2000/svg">
-      <title>${game.i18n.localize('challengeTracker.labels.challengeTrackerListTitle')}</title>
+    const tooltip = game.i18n.localize("challengeTracker.labels.challengeTrackerButtonTitle");
+    const icon = `<svg width="100%" height="100%" viewBox="-5 -5 110 110" xmlns="http://www.w3.org/2000/svg">
+      <title>${game.i18n.localize("challengeTracker.labels.challengeTrackerListTitle")}</title>
       <ellipse stroke-width="7" id="outer_circle" cx="50" cy="50" rx="50" ry="50" stroke="currentColor" fill="none" fill-opacity="0"/>
       <ellipse stroke-width="7" id="inner_circle" cx="50" cy="50" rx="30" ry="30" stroke="currentColor" fill="none" fill-opacity="0"/>
       <line stroke-width="7" id="svg_4" x1="50" x2="50" y1="0" y2="50" stroke="currentColor" fill="none" fill-opacity="0"/>
@@ -82,56 +81,52 @@ Hooks.on('renderPlayerList', (playerList, html) => {
       <line stroke-width="7" id="svg_8" x1="50" x2="50" y1="80" y2="100" stroke="currentColor" fill="none" fill-opacity="0"/>
       <line stroke-width="7" id="svg_9" x1="0" x2="20" y1="50" y2="50" stroke="currentColor" fill="none" fill-opacity="0"/>
       <line stroke-width="7" id="svg_11" x1="80" x2="100" y1="50" y2="50" stroke="currentColor" fill="none" fill-opacity="0"/>
-    </svg>`
+    </svg>`;
 
-    const listElement = html.find('li')
+    const listElement = html.find("li");
     for (const element of listElement) {
-      const userId = $(element).data().userId
+      const userId = $(element).data().userId;
       if (game.user.isGM || userId === game.userId) {
-        $(element).append(
-          `<button type='button' title='${tooltip}' class='challenge-tracker-player-list-button flex0'>${icon}</button>`
-        )
-      } else if (game.system.id === 'swade') {
-        $(element).append(
-          '<span class=\'challenge-tracker-player-list-placeholder flex0\'></span>')
+        $(element).append(`<button type='button' title='${tooltip}' class='challenge-tracker-player-list-button flex0'>${icon}</button>`);
+      } else if (game.system.id === "swade") {
+        $(element).append("<span class='challenge-tracker-player-list-placeholder flex0'></span>");
       }
     }
 
     // Add click event to button
-    html.on('click', '.challenge-tracker-player-list-button', (event) => {
-      ChallengeTrackerForm.openByEvent(event)
-    })
+    html.on("click", ".challenge-tracker-player-list-button", (event) => {
+      ChallengeTrackerForm.openByEvent(event);
+    });
 
-    ChallengeTrackerCompatibility.minmalUiPlayerList(html)
-  })()
-})
+    ChallengeTrackerCompatibility.minmalUiPlayerList(html);
+  })();
+});
 
-Hooks.on('getSceneControlButtons', (controls) => {
-  const buttonLocation = Utils.getSetting('challenge-tracker', 'buttonLocation', ChallengeTrackerSettings.default.buttonLocation)
-  if (!Utils.checkDisplayButton(game.user.role)) return
-  if (buttonLocation === 'player-list' || buttonLocation === 'none') return
+Hooks.on("getSceneControlButtons", (controls) => {
+  const buttonLocation = Utils.getSetting("challenge-tracker", "buttonLocation", ChallengeTrackerSettings.default.buttonLocation);
+  if (!Utils.checkDisplayButton(game.user.role)) return;
+  if (buttonLocation === "player-list" || buttonLocation === "none") return;
   controls
-    .find(c => c.name === buttonLocation)
+    .find((c) => c.name === buttonLocation)
     .tools.push({
-      name: 'challenge-tracker',
-      title: game.i18n.localize('challengeTracker.labels.challengeTrackerButtonTitle'),
-      icon: 'challenge-tracker-control-button',
+      name: "challenge-tracker",
+      title: game.i18n.localize("challengeTracker.labels.challengeTrackerButtonTitle"),
+      icon: "challenge-tracker-control-button",
       onClick: (toggle) => {
         if (toggle) {
-          ChallengeTrackerForm.open()
+          ChallengeTrackerForm.open();
         } else {
-          game.challengeTrackerForm.close()
+          game.challengeTrackerForm.close();
         }
       },
-      toggle: true
-    })
-})
+      toggle: true,
+    });
+});
 
-Hooks.on('renderSceneControls', (controls, html) => {
-  const controlButton = html.find('.challenge-tracker-control-button')
-  const icon =
-  `<svg width="100%" height="100%" viewBox="-5 -5 110 110" xmlns="http://www.w3.org/2000/svg">
-    <title>${game.i18n.localize('challengeTracker.labels.challengeTrackerListTitle')}</title>
+Hooks.on("renderSceneControls", (controls, html) => {
+  const controlButton = html.find(".challenge-tracker-control-button");
+  const icon = `<svg width="100%" height="100%" viewBox="-5 -5 110 110" xmlns="http://www.w3.org/2000/svg">
+    <title>${game.i18n.localize("challengeTracker.labels.challengeTrackerListTitle")}</title>
     <ellipse stroke-width="7" id="outer_circle" cx="50" cy="50" rx="50" ry="50" stroke="currentColor" fill="none" fill-opacity="0"/>
     <ellipse stroke-width="7" id="inner_circle" cx="50" cy="50" rx="30" ry="30" stroke="currentColor" fill="none" fill-opacity="0"/>
     <line stroke-width="7" id="svg_4" x1="50" x2="50" y1="0" y2="50" stroke="currentColor" fill="none" fill-opacity="0"/>
@@ -140,12 +135,12 @@ Hooks.on('renderSceneControls', (controls, html) => {
     <line stroke-width="7" id="svg_8" x1="50" x2="50" y1="80" y2="100" stroke="currentColor" fill="none" fill-opacity="0"/>
     <line stroke-width="7" id="svg_9" x1="0" x2="20" y1="50" y2="50" stroke="currentColor" fill="none" fill-opacity="0"/>
     <line stroke-width="7" id="svg_11" x1="80" x2="100" y1="50" y2="50" stroke="currentColor" fill="none" fill-opacity="0"/>
-  </svg>`
-  controlButton.replaceWith(`<span id="challenge-tracker-control-button">${icon}</span>`)
-})
+  </svg>`;
+  controlButton.replaceWith(`<span id="challenge-tracker-control-button">${icon}</span>`);
+});
 
 /* Draw the challenge trackers once rendered */
-Hooks.on('renderChallengeTracker', async (challengeTracker) => {
-  if (!game.challengeTracker) return
-  challengeTracker._draw()
-})
+Hooks.on("renderChallengeTracker", async (challengeTracker) => {
+  if (!game.challengeTracker) return;
+  challengeTracker._draw();
+});
